@@ -1,0 +1,493 @@
+basePath: /v1
+definitions:
+  domain.AvailabilityResponse:
+    properties:
+      free_ranges:
+        items:
+          $ref: '#/definitions/domain.TimeRange'
+        type: array
+      slots:
+        items:
+          $ref: '#/definitions/domain.AvailableSlot'
+        type: array
+    type: object
+  domain.AvailableSlot:
+    properties:
+      ends_at:
+        type: string
+      starts_at:
+        type: string
+    type: object
+  domain.CreateReservationRequest:
+    properties:
+      doctor_id:
+        type: string
+      patient_email:
+        type: string
+      patient_id:
+        description: set if returning patient
+        type: string
+      patient_name:
+        type: string
+      patient_phone:
+        type: string
+      starts_at:
+        description: RFC3339
+        type: string
+      type:
+        description: '"first_visit" | "follow_up"'
+        type: string
+    required:
+    - doctor_id
+    - starts_at
+    - type
+    type: object
+  domain.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - name
+    - phone
+    type: object
+  domain.DoctorResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      specialty:
+        type: string
+      working_hours:
+        items:
+          $ref: '#/definitions/domain.WorkingHoursResp'
+        type: array
+    type: object
+  domain.ReservationResponse:
+    properties:
+      doctor_id:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      patient_id:
+        type: string
+      starts_at:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.TimeRange:
+    properties:
+      from:
+        type: string
+      to:
+        type: string
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  domain.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  domain.WorkingHoursResp:
+    properties:
+      from:
+        type: string
+      to:
+        type: string
+      weekday:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: Public-facing HTTP API for medical appointment scheduling.
+  title: Clinic Scheduling API
+  version: "1.0"
+paths:
+  /doctors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.DoctorResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all doctors
+      tags:
+      - doctors
+  /doctors/{id}:
+    get:
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.DoctorResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a doctor by ID
+      tags:
+      - doctors
+  /doctors/{id}/availability:
+    get:
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: 'Reservation type: first_visit or follow_up'
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get available slots for a doctor on a given date
+      tags:
+      - availability
+  /reservations:
+    get:
+      parameters:
+      - description: Doctor ID
+        in: query
+        name: doctor_id
+        type: string
+      - description: From datetime (RFC3339)
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To datetime (RFC3339)
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ReservationResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List reservations for a doctor in a time range
+      tags:
+      - reservations
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Reservation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateReservationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.ReservationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a reservation
+      tags:
+      - reservations
+  /reservations/{id}:
+    delete:
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cancel a reservation
+      tags:
+      - reservations
+    get:
+      parameters:
+      - description: Reservation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ReservationResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a reservation by ID
+      tags:
+      - reservations
+  /users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a user
+      tags:
+      - users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a user by ID
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a user
+      tags:
+      - users
+  /users/{id}/reservations:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ReservationResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List reservations for a user
+      tags:
+      - users
+swagger: "2.0"

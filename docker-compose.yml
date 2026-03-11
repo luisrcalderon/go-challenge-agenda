@@ -1,0 +1,28 @@
+services:
+  agenda:
+    build:
+      context: .
+      dockerfile: services/agenda/Dockerfile
+    environment:
+      AGENDA_GRPC_ADDR: ":50051"
+      DB_DRIVER: sqlite3
+      DB_SOURCE: /data/agenda.db
+    volumes:
+      - agenda-data:/data
+    ports:
+      - "50051:50051"
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      API_HTTP_ADDR: ":8080"
+      AGENDA_GRPC_ADDR: "agenda:50051"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - agenda
+
+volumes:
+  agenda-data:
