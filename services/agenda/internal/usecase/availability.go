@@ -47,16 +47,22 @@ func (u *AvailabilityUsecase) GetAvailability(
 		return &AvailabilityResult{}, nil
 	}
 
-	// Get existing reservations for the day
 	existing, err := u.reservations.ListReservations(ctx, doctorID, dayStart, dayEnd)
 	if err != nil {
 		return nil, fmt.Errorf("list reservations: %w", err)
 	}
 
-	// TODO: fetch blocked slots and include their occurrences in busy periods
-	// blocked, err := u.blockedSlots.ListBlockedSlots(ctx, doctorID, dayStart, dayEnd)
+	blocked, err := u.blockedSlots.ListBlockedSlots(ctx, doctorID, dayStart, dayEnd)
+	if err != nil {
+		return nil, fmt.Errorf("list blocked slots: %w", err)
+	}
 
 	busy := reservationsToBusy(existing)
+	for _, b := range blocked {
+		for _, occ := range b.Occurrences(dayStart, dayEnd) {
+			busy = append(busy, [2]time.Time{occ.StartsAt, occ.EndsAt})
+		}
+	}
 	free := subtractBusy(dayStart, dayEnd, busy)
 	slots := slicesFromFreeRanges(free, resType.SlotDuration())
 
