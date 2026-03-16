@@ -1,7 +1,7 @@
 package http
 
 import (
-	agendav1 "go-challenge-agenda/gen/agenda/v1"
+	"go-challenge-agenda/services/api/internal/port"
 	"go-challenge-agenda/services/api/internal/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -9,20 +9,20 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func NewRouter(agendaClient agendav1.AgendaServiceClient) *gin.Engine {
+func NewRouter(agenda port.AgendaPort) *gin.Engine {
 	r := gin.Default()
 	r.Use(ErrorMiddleware())
 
 	// Swagger UI
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	availUC := usecase.NewAvailabilityUsecase(agendaClient)
-	resUC := usecase.NewReservationUsecase(agendaClient)
+	availUC := usecase.NewAvailabilityUsecase(agenda)
+	resUC := usecase.NewReservationUsecase(agenda)
 
-	doctorH := NewDoctorHandler(agendaClient)
+	doctorH := NewDoctorHandler(agenda)
 	availH := NewAvailabilityHandler(availUC)
-	resH := NewReservationHandler(resUC, agendaClient)
-	userH := NewUserHandler(usecase.NewUserUsecase(agendaClient))
+	resH := NewReservationHandler(resUC, agenda)
+	userH := NewUserHandler(usecase.NewUserUsecase(agenda))
 
 	v1 := r.Group("/v1")
 	{

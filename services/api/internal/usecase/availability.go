@@ -6,16 +6,15 @@ import (
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
+	"go-challenge-agenda/services/api/internal/port"
 )
 
-// AvailabilityUsecase is coupled to the concrete gRPC client type.
-// Candidates should extract an AgendaPort interface and inject it.
 type AvailabilityUsecase struct {
-	agendaClient agendav1.AgendaServiceClient
+	agenda port.AgendaPort
 }
 
-func NewAvailabilityUsecase(client agendav1.AgendaServiceClient) *AvailabilityUsecase {
-	return &AvailabilityUsecase{agendaClient: client}
+func NewAvailabilityUsecase(agenda port.AgendaPort) *AvailabilityUsecase {
+	return &AvailabilityUsecase{agenda: agenda}
 }
 
 func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, date, resType string) (*domain.AvailabilityResponse, error) {
@@ -24,7 +23,7 @@ func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, dat
 		pbType = agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
 	}
 
-	resp, err := u.agendaClient.GetAvailability(ctx, &agendav1.GetAvailabilityRequest{
+	resp, err := u.agenda.GetAvailability(ctx, &agendav1.GetAvailabilityRequest{
 		DoctorId:        doctorID,
 		Date:            date,
 		ReservationType: pbType,

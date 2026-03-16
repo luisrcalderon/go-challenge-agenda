@@ -29,9 +29,10 @@ func main() {
 	}
 	defer conn.Close()
 
+	agenda := apiclient.NewAgendaPort(agendaClient)
 	srv := &http.Server{
 		Addr:    cfg.HTTPAddr,
-		Handler: apihttp.NewRouter(agendaClient),
+		Handler: apihttp.NewRouter(agenda),
 	}
 
 	quit := make(chan os.Signal, 1)

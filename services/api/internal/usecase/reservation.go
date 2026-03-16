@@ -7,15 +7,15 @@ import (
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/domain"
+	"go-challenge-agenda/services/api/internal/port"
 )
 
-// ReservationUsecase is also coupled to the concrete gRPC client.
 type ReservationUsecase struct {
-	agendaClient agendav1.AgendaServiceClient
+	agenda port.AgendaPort
 }
 
-func NewReservationUsecase(client agendav1.AgendaServiceClient) *ReservationUsecase {
-	return &ReservationUsecase{agendaClient: client}
+func NewReservationUsecase(agenda port.AgendaPort) *ReservationUsecase {
+	return &ReservationUsecase{agenda: agenda}
 }
 
 func (u *ReservationUsecase) Create(ctx context.Context, req *domain.CreateReservationRequest) (*domain.ReservationResponse, error) {
@@ -29,7 +29,7 @@ func (u *ReservationUsecase) Create(ctx context.Context, req *domain.CreateReser
 		pbType = agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
 	}
 
-	resp, err := u.agendaClient.CreateReservation(ctx, &agendav1.CreateReservationRequest{
+	resp, err := u.agenda.CreateReservation(ctx, &agendav1.CreateReservationRequest{
 		DoctorId:     req.DoctorID,
 		StartsAt:     req.StartsAt,
 		Type:         pbType,
@@ -46,7 +46,7 @@ func (u *ReservationUsecase) Create(ctx context.Context, req *domain.CreateReser
 }
 
 func (u *ReservationUsecase) Cancel(ctx context.Context, id string) error {
-	_, err := u.agendaClient.CancelReservation(ctx, &agendav1.CancelReservationRequest{Id: id})
+	_, err := u.agenda.CancelReservation(ctx, &agendav1.CancelReservationRequest{Id: id})
 	return err
 }
 
