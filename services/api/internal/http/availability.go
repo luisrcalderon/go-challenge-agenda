@@ -29,15 +29,26 @@ func NewAvailabilityHandler(uc *usecase.AvailabilityUsecase) *AvailabilityHandle
 // @Failure     500   {object}  map[string]string
 // @Router      /doctors/{id}/availability [get]
 func (h *AvailabilityHandler) Get(c *gin.Context) {
-	// TODO: this handler returns stub data — wire it to the usecase.
-	c.JSON(http.StatusOK, domain.AvailabilityResponse{
-		Slots: []domain.AvailableSlot{
-			{StartsAt: "2024-03-15T09:00:00Z", EndsAt: "2024-03-15T09:30:00Z"},
-			{StartsAt: "2024-03-15T09:30:00Z", EndsAt: "2024-03-15T10:00:00Z"},
-			{StartsAt: "2024-03-15T10:00:00Z", EndsAt: "2024-03-15T10:30:00Z"},
-		},
-		FreeRanges: []domain.TimeRange{
-			{From: "2024-03-15T09:00:00Z", To: "2024-03-15T17:00:00Z"},
-		},
-	})
+	doctorID := c.Param("id")
+	if doctorID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "doctor id is required"})
+		return
+	}
+	date := c.Query("date")
+	if date == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "date query param is required (YYYY-MM-DD)"})
+		return
+	}
+	resType := c.DefaultQuery("type", "follow_up")
+	if resType != "first_visit" && resType != "follow_up" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type must be first_visit or follow_up"})
+		return
+	}
+
+	result, err := h.uc.GetAvailability(c.Request.Context(), doctorID, date, resType)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
 }
