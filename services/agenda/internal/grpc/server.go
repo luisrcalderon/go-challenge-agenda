@@ -120,15 +120,29 @@ func (s *Server) GetReservation(ctx context.Context, req *agendav1.GetReservatio
 }
 
 func (s *Server) ListReservations(ctx context.Context, req *agendav1.ListReservationsRequest) (*agendav1.ListReservationsResponse, error) {
-	from, err := time.Parse(time.RFC3339, req.From)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid from: %v", err)
+	var from, to time.Time
+	var err error
+	if req.From != "" && req.To != "" {
+		from, err = time.Parse(time.RFC3339, req.From)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid from: %v", err)
+		}
+		to, err = time.Parse(time.RFC3339, req.To)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid to: %v", err)
+		}
+	} else {
+		now := time.Now().UTC()
+		from = now.AddDate(-1, 0, 0)
+		to = now.AddDate(1, 0, 0)
 	}
-	to, err := time.Parse(time.RFC3339, req.To)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid to: %v", err)
+
+	var list []*domain.Reservation
+	if req.PatientId != "" {
+		list, err = s.reservations.ListByPatient(ctx, req.PatientId, from, to)
+	} else {
+		list, err = s.reservations.List(ctx, req.DoctorId, from, to)
 	}
-	list, err := s.reservations.List(ctx, req.DoctorId, from, to)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err)
 	}

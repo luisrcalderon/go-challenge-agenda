@@ -85,6 +85,39 @@ func (u *UserUsecase) Delete(ctx context.Context, id string) error {
 	return err
 }
 
+// ListReservations returns all reservations for the given user (patient) id.
+func (u *UserUsecase) ListReservations(ctx context.Context, userID string) ([]domain.ReservationResponse, error) {
+	resp, err := u.agendaClient.ListReservations(ctx, &agendav1.ListReservationsRequest{
+		PatientId: userID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("agenda.ListReservations: %w", err)
+	}
+	out := make([]domain.ReservationResponse, len(resp.Reservations))
+	for i, r := range resp.Reservations {
+		out[i] = *reservationProtoToDTO(r)
+	}
+	return out, nil
+}
+
+func reservationProtoToDTO(r *agendav1.Reservation) *domain.ReservationResponse {
+	if r == nil {
+		return nil
+	}
+	typeStr := "follow_up"
+	if r.Type == agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT {
+		typeStr = "first_visit"
+	}
+	statusStr := "confirmed"
+	if r.Status == agendav1.ReservationStatus_RESERVATION_STATUS_CANCELLED {
+		statusStr = "cancelled"
+	}
+	return &domain.ReservationResponse{
+		ID: r.Id, DoctorID: r.DoctorId, PatientID: r.PatientId,
+		StartsAt: r.StartsAt, EndsAt: r.EndsAt, Type: typeStr, Status: statusStr,
+	}
+}
+
 func protoPatientToDTO(p *agendav1.Patient) domain.UserResponse {
 	return domain.UserResponse{ID: p.Id, Name: p.Name, Phone: p.Phone, Email: p.Email}
 }

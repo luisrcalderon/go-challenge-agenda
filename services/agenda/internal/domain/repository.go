@@ -24,6 +24,8 @@ type ReservationRepository interface {
 	GetReservation(ctx context.Context, id string) (*Reservation, error)
 	// ListReservations returns reservations for a doctor overlapping [from, to].
 	ListReservations(ctx context.Context, doctorID string, from, to time.Time) ([]*Reservation, error)
+	// ListReservationsByPatient returns reservations for a patient overlapping [from, to].
+	ListReservationsByPatient(ctx context.Context, patientID string, from, to time.Time) ([]*Reservation, error)
 	UpdateReservation(ctx context.Context, r *Reservation) error
 	CancelReservation(ctx context.Context, id string) error
 }

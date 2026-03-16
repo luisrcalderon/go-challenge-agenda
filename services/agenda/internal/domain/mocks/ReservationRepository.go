@@ -239,6 +239,63 @@ func (_c *ReservationRepository_ListReservations_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// ListReservationsByPatient provides a mock function with given fields: ctx, patientID, from, to
+func (_m *ReservationRepository) ListReservationsByPatient(ctx context.Context, patientID string, from time.Time, to time.Time) ([]*domain.Reservation, error) {
+	ret := _m.Called(ctx, patientID, from, to)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListReservationsByPatient")
+	}
+
+	var r0 []*domain.Reservation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) ([]*domain.Reservation, error)); ok {
+		return rf(ctx, patientID, from, to)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time) []*domain.Reservation); ok {
+		r0 = rf(ctx, patientID, from, to)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Reservation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time) error); ok {
+		r1 = rf(ctx, patientID, from, to)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReservationRepository_ListReservationsByPatient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListReservationsByPatient'
+type ReservationRepository_ListReservationsByPatient_Call struct {
+	*mock.Call
+}
+
+// ListReservationsByPatient is a helper method to define mock.On call
+func (_e *ReservationRepository_Expecter) ListReservationsByPatient(ctx interface{}, patientID interface{}, from interface{}, to interface{}) *ReservationRepository_ListReservationsByPatient_Call {
+	return &ReservationRepository_ListReservationsByPatient_Call{Call: _e.mock.On("ListReservationsByPatient", ctx, patientID, from, to)}
+}
+
+func (_c *ReservationRepository_ListReservationsByPatient_Call) Run(run func(ctx context.Context, patientID string, from time.Time, to time.Time)) *ReservationRepository_ListReservationsByPatient_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(time.Time), args[3].(time.Time))
+	})
+	return _c
+}
+
+func (_c *ReservationRepository_ListReservationsByPatient_Call) Return(_a0 []*domain.Reservation, _a1 error) *ReservationRepository_ListReservationsByPatient_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ReservationRepository_ListReservationsByPatient_Call) RunAndReturn(run func(context.Context, string, time.Time, time.Time) ([]*domain.Reservation, error)) *ReservationRepository_ListReservationsByPatient_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateReservation provides a mock function with given fields: ctx, r
 func (_m *ReservationRepository) UpdateReservation(ctx context.Context, r *domain.Reservation) error {
 	ret := _m.Called(ctx, r)

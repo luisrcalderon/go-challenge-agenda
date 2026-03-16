@@ -83,6 +83,10 @@ func (u *ReservationUsecase) List(ctx context.Context, doctorID string, from, to
 	return u.reservations.ListReservations(ctx, doctorID, from, to)
 }
 
+func (u *ReservationUsecase) ListByPatient(ctx context.Context, patientID string, from, to time.Time) ([]*domain.Reservation, error) {
+	return u.reservations.ListReservationsByPatient(ctx, patientID, from, to)
+}
+
 func (u *ReservationUsecase) resolvePatient(ctx context.Context, in CreateReservationInput) (*domain.Patient, error) {
 	if in.PatientID != "" {
 		return u.patients.GetPatient(ctx, in.PatientID)

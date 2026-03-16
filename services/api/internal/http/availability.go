@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-	"go-challenge-agenda/services/api/internal/domain"
 	"go-challenge-agenda/services/api/internal/usecase"
 
 	"github.com/gin-gonic/gin"
