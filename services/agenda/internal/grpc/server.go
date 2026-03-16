@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
@@ -102,6 +103,9 @@ func (s *Server) CreateReservation(ctx context.Context, req *agendav1.CreateRese
 		PatientEmail: req.PatientEmail,
 	})
 	if err != nil {
+		if errors.Is(err, usecase.ErrConflict) {
+			return nil, status.Errorf(codes.FailedPrecondition, "time slot not available")
+		}
 		return nil, status.Errorf(codes.Internal, "create reservation: %v", err)
 	}
 	return &agendav1.CreateReservationResponse{Reservation: domainReservationToProto(res)}, nil

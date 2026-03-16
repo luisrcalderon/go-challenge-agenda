@@ -12,7 +12,14 @@ const (
 
 // SlotDuration returns the duration for a reservation type.
 func (t ReservationType) SlotDuration() time.Duration {
-	return 30 * time.Minute
+	switch t {
+	case ReservationTypeFirstVisit:
+		return 60 * time.Minute
+	case ReservationTypeFollowUp:
+		return 30 * time.Minute
+	default:
+		return 30 * time.Minute
+	}
 }
 
 type ReservationStatus int

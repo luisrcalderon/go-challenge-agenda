@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 
 	"github.com/google/uuid"
 )
+
+// ErrConflict is returned when the requested time slot overlaps an existing reservation.
+var ErrConflict = errors.New("time slot not available")
 
 type ReservationUsecase struct {
 	reservations domain.ReservationRepository
@@ -48,7 +52,7 @@ func (u *ReservationUsecase) Create(ctx context.Context, in CreateReservationInp
 		return nil, fmt.Errorf("check conflict: %w", err)
 	}
 	if conflict {
-		return nil, fmt.Errorf("time slot not available")
+		return nil, ErrConflict
 	}
 
 	res := &domain.Reservation{
@@ -103,9 +107,8 @@ func (u *ReservationUsecase) resolvePatient(ctx context.Context, in CreateReserv
 }
 
 // hasConflict checks if [startsAt, endsAt) overlaps any confirmed reservation.
-// Misses: new slot contains existing, new slot ends inside existing.
+// Two intervals overlap when start1 < end2 && start2 < end1.
 func (u *ReservationUsecase) hasConflict(ctx context.Context, doctorID string, startsAt, endsAt time.Time) (bool, error) {
-	// Use a wide window to retrieve candidates
 	existing, err := u.reservations.ListReservations(ctx, doctorID, startsAt.Add(-24*time.Hour), endsAt.Add(24*time.Hour))
 	if err != nil {
 		return false, err
@@ -114,7 +117,7 @@ func (u *ReservationUsecase) hasConflict(ctx context.Context, doctorID string, s
 		if int(r.Status) == int(domain.ReservationStatusCancelled) {
 			continue
 		}
-		if startsAt.After(r.StartsAt) && startsAt.Before(r.EndsAt) {
+		if startsAt.Before(r.EndsAt) && endsAt.After(r.StartsAt) {
 			return true, nil
 		}
 	}
