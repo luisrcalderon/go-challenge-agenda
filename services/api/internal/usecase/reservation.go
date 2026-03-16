@@ -50,6 +50,30 @@ func (u *ReservationUsecase) Cancel(ctx context.Context, id string) error {
 	return err
 }
 
+func (u *ReservationUsecase) Get(ctx context.Context, id string) (*domain.ReservationResponse, error) {
+	resp, err := u.agenda.GetReservation(ctx, &agendav1.GetReservationRequest{Id: id})
+	if err != nil {
+		return nil, err
+	}
+	return protoReservationToDTO(resp.Reservation), nil
+}
+
+func (u *ReservationUsecase) List(ctx context.Context, doctorID, from, to string) ([]domain.ReservationResponse, error) {
+	resp, err := u.agenda.ListReservations(ctx, &agendav1.ListReservationsRequest{
+		DoctorId: doctorID,
+		From:     from,
+		To:       to,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.ReservationResponse, len(resp.Reservations))
+	for i, r := range resp.Reservations {
+		out[i] = *protoReservationToDTO(r)
+	}
+	return out, nil
+}
+
 func protoReservationToDTO(r *agendav1.Reservation) *domain.ReservationResponse {
 	if r == nil {
 		return nil

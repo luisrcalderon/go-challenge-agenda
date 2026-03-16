@@ -18,10 +18,11 @@ func NewRouter(agenda port.AgendaPort) *gin.Engine {
 
 	availUC := usecase.NewAvailabilityUsecase(agenda)
 	resUC := usecase.NewReservationUsecase(agenda)
+	doctorUC := usecase.NewDoctorUsecase(agenda)
 
-	doctorH := NewDoctorHandler(agenda)
+	doctorH := NewDoctorHandler(doctorUC)
 	availH := NewAvailabilityHandler(availUC)
-	resH := NewReservationHandler(resUC, agenda)
+	resH := NewReservationHandler(resUC)
 	userH := NewUserHandler(usecase.NewUserUsecase(agenda))
 
 	v1 := r.Group("/v1")
