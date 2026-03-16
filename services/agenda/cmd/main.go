@@ -10,7 +10,9 @@ import (
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/agenda/config"
+	"go-challenge-agenda/services/agenda/internal/domain"
 	agendagrpc "go-challenge-agenda/services/agenda/internal/grpc"
+	"go-challenge-agenda/services/agenda/internal/repository/postgres"
 	"go-challenge-agenda/services/agenda/internal/repository/sqlite"
 	"go-challenge-agenda/services/agenda/internal/usecase"
 
@@ -26,17 +28,40 @@ func main() {
 		log.Fatalf("open db: %v", err)
 	}
 
-	if err := sqlite.Migrate(db); err != nil {
-		log.Fatalf("migrate: %v", err)
-	}
-	if err := sqlite.Seed(db); err != nil {
-		log.Fatalf("seed: %v", err)
+	switch cfg.DBDriver {
+	case "sqlite3":
+		if err := sqlite.Migrate(db); err != nil {
+			log.Fatalf("migrate: %v", err)
+		}
+		if err := sqlite.Seed(db); err != nil {
+			log.Fatalf("seed: %v", err)
+		}
+	case "postgres":
+		if err := postgres.Migrate(db); err != nil {
+			log.Fatalf("migrate: %v", err)
+		}
+		if err := postgres.Seed(db); err != nil {
+			log.Fatalf("seed: %v", err)
+		}
 	}
 
-	doctorRepo := sqlite.NewDoctorRepository(db)
-	patientRepo := sqlite.NewPatientRepository(db)
-	reservationRepo := sqlite.NewReservationRepository(db)
-	blockedSlotRepo := sqlite.NewBlockedSlotRepository(db)
+	var doctorRepo domain.DoctorRepository
+	var patientRepo domain.PatientRepository
+	var reservationRepo domain.ReservationRepository
+	var blockedSlotRepo domain.BlockedSlotRepository
+
+	switch cfg.DBDriver {
+	case "sqlite3":
+		doctorRepo = sqlite.NewDoctorRepository(db)
+		patientRepo = sqlite.NewPatientRepository(db)
+		reservationRepo = sqlite.NewReservationRepository(db)
+		blockedSlotRepo = sqlite.NewBlockedSlotRepository(db)
+	case "postgres":
+		doctorRepo = postgres.NewDoctorRepository(db)
+		patientRepo = postgres.NewPatientRepository(db)
+		reservationRepo = postgres.NewReservationRepository(db)
+		blockedSlotRepo = postgres.NewBlockedSlotRepository(db)
+	}
 
 	availUC := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
 	reservationUC := usecase.NewReservationUsecase(reservationRepo, patientRepo)
