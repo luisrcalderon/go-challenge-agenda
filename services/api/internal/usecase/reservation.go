@@ -24,10 +24,7 @@ func (u *ReservationUsecase) Create(ctx context.Context, req *domain.CreateReser
 		return nil, fmt.Errorf("invalid starts_at: %w", err)
 	}
 
-	pbType := agendav1.ReservationType_RESERVATION_TYPE_FOLLOW_UP
-	if req.Type == "first_visit" {
-		pbType = agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
-	}
+	pbType := reservationTypeStringToProto(req.Type)
 
 	resp, err := u.agenda.CreateReservation(ctx, &agendav1.CreateReservationRequest{
 		DoctorId:     req.DoctorID,
@@ -74,14 +71,24 @@ func (u *ReservationUsecase) List(ctx context.Context, doctorID, from, to string
 	return out, nil
 }
 
+func reservationTypeProtoToString(t agendav1.ReservationType) string {
+	switch t {
+	case agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT:
+		return "first_visit"
+	case agendav1.ReservationType_RESERVATION_TYPE_LABS:
+		return "labs"
+	case agendav1.ReservationType_RESERVATION_TYPE_THERAPY:
+		return "therapy"
+	default:
+		return "follow_up"
+	}
+}
+
 func protoReservationToDTO(r *agendav1.Reservation) *domain.ReservationResponse {
 	if r == nil {
 		return nil
 	}
-	typeStr := "follow_up"
-	if r.Type == agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT {
-		typeStr = "first_visit"
-	}
+	typeStr := reservationTypeProtoToString(r.Type)
 	statusStr := "confirmed"
 	if r.Status == agendav1.ReservationStatus_RESERVATION_STATUS_CANCELLED {
 		statusStr = "cancelled"

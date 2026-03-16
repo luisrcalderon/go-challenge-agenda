@@ -105,10 +105,7 @@ func reservationProtoToDTO(r *agendav1.Reservation) *domain.ReservationResponse 
 	if r == nil {
 		return nil
 	}
-	typeStr := "follow_up"
-	if r.Type == agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT {
-		typeStr = "first_visit"
-	}
+	typeStr := reservationTypeProtoToString(r.Type)
 	statusStr := "confirmed"
 	if r.Status == agendav1.ReservationStatus_RESERVATION_STATUS_CANCELLED {
 		statusStr = "cancelled"

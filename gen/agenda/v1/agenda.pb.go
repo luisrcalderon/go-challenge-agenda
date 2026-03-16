@@ -26,7 +26,9 @@ type ReservationType int32
 const (
 	ReservationType_RESERVATION_TYPE_UNSPECIFIED ReservationType = 0
 	ReservationType_RESERVATION_TYPE_FIRST_VISIT ReservationType = 1
-	ReservationType_RESERVATION_TYPE_FOLLOW_UP   ReservationType = 2 // TODO: add extended service types (labs, therapy, etc.)
+	ReservationType_RESERVATION_TYPE_FOLLOW_UP   ReservationType = 2
+	ReservationType_RESERVATION_TYPE_LABS        ReservationType = 3 // 45 min
+	ReservationType_RESERVATION_TYPE_THERAPY     ReservationType = 4 // 50 min
 )
 
 // Enum value maps for ReservationType.
@@ -35,11 +37,15 @@ var (
 		0: "RESERVATION_TYPE_UNSPECIFIED",
 		1: "RESERVATION_TYPE_FIRST_VISIT",
 		2: "RESERVATION_TYPE_FOLLOW_UP",
+		3: "RESERVATION_TYPE_LABS",
+		4: "RESERVATION_TYPE_THERAPY",
 	}
 	ReservationType_value = map[string]int32{
 		"RESERVATION_TYPE_UNSPECIFIED": 0,
 		"RESERVATION_TYPE_FIRST_VISIT": 1,
 		"RESERVATION_TYPE_FOLLOW_UP":   2,
+		"RESERVATION_TYPE_LABS":        3,
+		"RESERVATION_TYPE_THERAPY":     4,
 	}
 )
 
@@ -2253,11 +2259,13 @@ const file_agenda_v1_agenda_proto_rawDesc = "" +
 	"\freservations\x18\x01 \x03(\v2\x16.agenda.v1.ReservationR\freservations\"*\n" +
 	"\x18CancelReservationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1b\n" +
-	"\x19CancelReservationResponse*u\n" +
+	"\x19CancelReservationResponse*\xae\x01\n" +
 	"\x0fReservationType\x12 \n" +
 	"\x1cRESERVATION_TYPE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cRESERVATION_TYPE_FIRST_VISIT\x10\x01\x12\x1e\n" +
-	"\x1aRESERVATION_TYPE_FOLLOW_UP\x10\x02*{\n" +
+	"\x1aRESERVATION_TYPE_FOLLOW_UP\x10\x02\x12\x19\n" +
+	"\x15RESERVATION_TYPE_LABS\x10\x03\x12\x1c\n" +
+	"\x18RESERVATION_TYPE_THERAPY\x10\x04*{\n" +
 	"\x11ReservationStatus\x12\"\n" +
 	"\x1eRESERVATION_STATUS_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cRESERVATION_STATUS_CONFIRMED\x10\x01\x12 \n" +

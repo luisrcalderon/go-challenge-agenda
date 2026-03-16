@@ -8,6 +8,8 @@ const (
 	ReservationTypeUnspecified ReservationType = iota
 	ReservationTypeFirstVisit
 	ReservationTypeFollowUp
+	ReservationTypeLabs    // 45 min
+	ReservationTypeTherapy // 50 min
 )
 
 // SlotDuration returns the duration for a reservation type.
@@ -17,6 +19,10 @@ func (t ReservationType) SlotDuration() time.Duration {
 		return 60 * time.Minute
 	case ReservationTypeFollowUp:
 		return 30 * time.Minute
+	case ReservationTypeLabs:
+		return 45 * time.Minute
+	case ReservationTypeTherapy:
+		return 50 * time.Minute
 	default:
 		return 30 * time.Minute
 	}

@@ -10,7 +10,8 @@ enum ReservationType {
   RESERVATION_TYPE_UNSPECIFIED = 0;
   RESERVATION_TYPE_FIRST_VISIT = 1;
   RESERVATION_TYPE_FOLLOW_UP = 2;
-  // TODO: add extended service types (labs, therapy, etc.)
+  RESERVATION_TYPE_LABS = 3;     // 45 min
+  RESERVATION_TYPE_THERAPY = 4;  // 50 min
 }
 
 enum ReservationStatus {

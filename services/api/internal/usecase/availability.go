@@ -17,11 +17,21 @@ func NewAvailabilityUsecase(agenda port.AgendaPort) *AvailabilityUsecase {
 	return &AvailabilityUsecase{agenda: agenda}
 }
 
-func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, date, resType string) (*domain.AvailabilityResponse, error) {
-	pbType := agendav1.ReservationType_RESERVATION_TYPE_FOLLOW_UP
-	if resType == "first_visit" {
-		pbType = agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
+func reservationTypeStringToProto(s string) agendav1.ReservationType {
+	switch s {
+	case "first_visit":
+		return agendav1.ReservationType_RESERVATION_TYPE_FIRST_VISIT
+	case "labs":
+		return agendav1.ReservationType_RESERVATION_TYPE_LABS
+	case "therapy":
+		return agendav1.ReservationType_RESERVATION_TYPE_THERAPY
+	default:
+		return agendav1.ReservationType_RESERVATION_TYPE_FOLLOW_UP
 	}
+}
+
+func (u *AvailabilityUsecase) GetAvailability(ctx context.Context, doctorID, date, resType string) (*domain.AvailabilityResponse, error) {
+	pbType := reservationTypeStringToProto(resType)
 
 	resp, err := u.agenda.GetAvailability(ctx, &agendav1.GetAvailabilityRequest{
 		DoctorId:        doctorID,

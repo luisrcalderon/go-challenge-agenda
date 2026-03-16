@@ -82,7 +82,19 @@ func (r *concurrentReservationRepo) ListReservations(_ context.Context, doctorID
 	defer r.mu.Unlock()
 	var result []*domain.Reservation
 	for _, res := range r.reservations {
-		if res.StartsAt.Before(to) && res.EndsAt.After(from) {
+		if res.DoctorID == doctorID && res.StartsAt.Before(to) && res.EndsAt.After(from) {
+			result = append(result, res)
+		}
+	}
+	return result, nil
+}
+
+func (r *concurrentReservationRepo) ListReservationsByPatient(_ context.Context, patientID string, from, to time.Time) ([]*domain.Reservation, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var result []*domain.Reservation
+	for _, res := range r.reservations {
+		if res.PatientID == patientID && res.StartsAt.Before(to) && res.EndsAt.After(from) {
 			result = append(result, res)
 		}
 	}

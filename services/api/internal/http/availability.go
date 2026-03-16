@@ -39,8 +39,9 @@ func (h *AvailabilityHandler) Get(c *gin.Context) {
 		return
 	}
 	resType := c.DefaultQuery("type", "follow_up")
-	if resType != "first_visit" && resType != "follow_up" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "type must be first_visit or follow_up"})
+	allowed := map[string]bool{"first_visit": true, "follow_up": true, "labs": true, "therapy": true}
+	if !allowed[resType] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type must be first_visit, follow_up, labs, or therapy"})
 		return
 	}
 
