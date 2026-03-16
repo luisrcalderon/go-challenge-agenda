@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/agenda/config"
@@ -17,6 +20,8 @@ import (
 	"go-challenge-agenda/services/agenda/internal/usecase"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
 
@@ -74,7 +79,7 @@ func main() {
 		log.Fatalf("listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpcLoggingInterceptor))
 	agendav1.RegisterAgendaServiceServer(grpcServer, srv)
 
 	quit := make(chan os.Signal, 1)
@@ -97,6 +102,26 @@ func main() {
 	}
 
 	log.Println("agenda service stopped")
+}
+
+func grpcLoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	start := time.Now()
+	resp, err := handler(ctx, req)
+	duration := time.Since(start)
+	code := codes.OK
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			code = st.Code()
+		} else {
+			code = codes.Unknown
+		}
+	}
+	slog.Info("grpc_request",
+		"method", info.FullMethod,
+		"code", code.String(),
+		"duration_ms", duration.Milliseconds(),
+	)
+	return resp, err
 }
 
 func openDB(cfg config.Config) (*gorm.DB, error) {
