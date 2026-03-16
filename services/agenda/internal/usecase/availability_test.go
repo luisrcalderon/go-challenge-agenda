@@ -43,6 +43,7 @@ func TestGetAvailability_HappyPath(t *testing.T) {
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
 	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
+	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
 
 	uc := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
 
@@ -53,7 +54,6 @@ func TestGetAvailability_HappyPath(t *testing.T) {
 }
 
 // TestGetAvailability_WithBlockedSlots verifies that blocked slots remove time from availability.
-// This test FAILS because blocked slots are not yet factored into the availability calculation.
 func TestGetAvailability_WithBlockedSlots(t *testing.T) {
 	date := nextMonday()
 	dayStart := time.Date(date.Year(), date.Month(), date.Day(), 9, 0, 0, 0, time.UTC)
@@ -67,18 +67,13 @@ func TestGetAvailability_WithBlockedSlots(t *testing.T) {
 
 	doctorRepo.EXPECT().GetDoctor(context.Background(), "doc-001").Return(mondayDoctor(), nil)
 	reservationRepo.EXPECT().ListReservations(context.Background(), "doc-001", dayStart, dayEnd).Return(nil, nil)
-	// NOTE: this expectation will not be called until the bug is fixed
-	// blockedSlotRepo.EXPECT().ListBlockedSlots(...).Return(...)
-
-	_ = blockedSlotRepo // suppress unused warning until wired
+	blockedSlotRepo.EXPECT().ListBlockedSlots(context.Background(), "doc-001", dayStart, dayEnd).
+		Return([]*domain.BlockedSlot{{StartsAt: blockedStart, EndsAt: blockedEnd}}, nil)
 
 	uc := usecase.NewAvailabilityUsecase(doctorRepo, reservationRepo, blockedSlotRepo)
 
 	result, err := uc.GetAvailability(context.Background(), "doc-001", date, domain.ReservationTypeFollowUp)
 	require.NoError(t, err)
-
-	blocked := &domain.BlockedSlot{StartsAt: blockedStart, EndsAt: blockedEnd}
-	_ = blocked
 
 	for _, slot := range result.Slots {
 		if !slot.StartsAt.Before(blockedStart) && slot.StartsAt.Before(blockedEnd) {

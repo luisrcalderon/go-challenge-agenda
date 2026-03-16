@@ -107,11 +107,10 @@ func TestCreateReservation_FirstVisitDuration(t *testing.T) {
 	patientRepo.EXPECT().GetPatientByPhone(context.Background(), "555-0003").Return(nil, nil)
 	patientRepo.EXPECT().CreatePatient(context.Background(), mock.MatchedBy(func(_ *domain.Patient) bool { return true })).Return(nil)
 
-	// hasConflict: startsAt=9:00, endsAt=9:30 (bug: SlotDuration always 30m for FirstVisit).
-	// Window: [9:00-24h, 9:30+24h]
-	buggyEnd := base.Add(30 * time.Minute) // SlotDuration bug: should be 60m but is 30m
+	// hasConflict: startsAt=9:00, endsAt=10:00 (60m for FirstVisit)
+	endsAt := base.Add(60 * time.Minute)
 	reservationRepo.EXPECT().
-		ListReservations(context.Background(), "doc-001", base.Add(-24*time.Hour), buggyEnd.Add(24*time.Hour)).
+		ListReservations(context.Background(), "doc-001", base.Add(-24*time.Hour), endsAt.Add(24*time.Hour)).
 		Return(nil, nil)
 	reservationRepo.EXPECT().
 		CreateReservation(context.Background(), mock.MatchedBy(func(_ *domain.Reservation) bool { return true })).
@@ -131,7 +130,35 @@ func TestCreateReservation_FirstVisitDuration(t *testing.T) {
 	assert.Equal(t, expected, actual, "first visit should be 60 minutes")
 }
 
-// TestListReservations is a skeleton — implement me.
+// TestListReservations verifies that List returns reservations from the repository.
 func TestListReservations(t *testing.T) {
-	t.Skip("TODO: implement list reservations test")
+	from := time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC)
+	to := time.Date(2025, 6, 30, 23, 59, 59, 0, time.UTC)
+	doctorID := "doc-001"
+
+	expected := []*domain.Reservation{
+		{
+			ID: "res-1", DoctorID: doctorID, PatientID: "patient-1",
+			StartsAt: time.Date(2025, 6, 10, 9, 0, 0, 0, time.UTC),
+			EndsAt:   time.Date(2025, 6, 10, 9, 30, 0, 0, time.UTC),
+			Type:     domain.ReservationTypeFollowUp,
+			Status:   domain.ReservationStatusConfirmed,
+		},
+	}
+
+	reservationRepo := mocks.NewReservationRepository(t)
+	patientRepo := mocks.NewPatientRepository(t)
+	reservationRepo.EXPECT().
+		ListReservations(context.Background(), doctorID, from, to).
+		Return(expected, nil)
+
+	uc := usecase.NewReservationUsecase(reservationRepo, patientRepo)
+
+	list, err := uc.List(context.Background(), doctorID, from, to)
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+	assert.Equal(t, "res-1", list[0].ID)
+	assert.Equal(t, doctorID, list[0].DoctorID)
+	assert.Equal(t, "patient-1", list[0].PatientID)
+	assert.Equal(t, domain.ReservationTypeFollowUp, list[0].Type)
 }
