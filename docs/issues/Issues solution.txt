@@ -25,11 +25,38 @@ Issue #1
 	- The issue here was that the handler was not calling the usecase that was already there, so the call was 
 	  implemented.
 
+Issue #4
+	- New http errors added to mapping file
+
 
 Issue #5
 	- To solve this issue it was needed to solve #2, #3, #11
 	- Once this was done it was possible to implement the testing code for //TestListReservations 
 	  and other testing code like the slotduration
+
+Issue #8
+	- Implemented `Occurrences(from, to)` to expand daily, weekly, and monthly recurrence.
+	  now block slot implementation recurrence
+
+Issue #11
+	- Blocked slots now are now taken into account when checking for availability
+
+Issue #6
+	- The implementation of http://localhost:8080/v1/reservations was done through all layers
+	- Now when a user is created it can be used to add a reservation
+
+Issue #7
+	- New interface was created to decouple the api to depend from a concrete gRPC client
+
+Issue #10
+	- Doctor and reservation handlers no longer call the agenda port directly; they use usecases only.
+
+Issue #12
+	- 2 more types of reservation added to the proto file and added to the logic
+
+Issue #13
+	- Added loggin and metrics using prometheus to the domain layer
+
 
 Issue #9 
 	- Support added for postgresql without modifying bussiness logic, the only thing
