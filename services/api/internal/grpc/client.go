@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	agendav1 "go-challenge-agenda/gen/agenda/v1"
 	"go-challenge-agenda/services/api/internal/port"
@@ -12,8 +13,13 @@ import (
 )
 
 // NewAgendaClient creates a gRPC client connected to the agenda service.
+// If addr has no scheme (e.g. "agenda:50051"), it uses the dns resolver so Docker service names resolve.
 func NewAgendaClient(addr string) (agendav1.AgendaServiceClient, *grpc.ClientConn, error) {
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	target := addr
+	if !strings.Contains(addr, "://") {
+		target = "dns:///" + addr
+	}
+	conn, err := grpc.NewClient(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("dial agenda service: %w", err)
 	}

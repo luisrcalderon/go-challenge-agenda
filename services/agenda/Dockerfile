@@ -7,6 +7,6 @@ COPY . .
 RUN CGO_ENABLED=1 go build -o /agenda ./services/agenda/cmd
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates netcat-openbsd
 COPY --from=builder /agenda /agenda
 CMD ["/agenda"]

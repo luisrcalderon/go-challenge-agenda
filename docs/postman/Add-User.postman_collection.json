@@ -1,0 +1,37 @@
+{
+  "info": {
+    "name": "Add User",
+    "description": "Create a new user (patient) in the clinic scheduling API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jane Doe\",\n  \"phone\": \"+1-555-123-4567\",\n  \"email\": \"jane.doe@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/users",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "users"]
+        },
+        "description": "Creates a new user. All fields are required."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    }
+  ]
+}

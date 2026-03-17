@@ -1,16 +1,56 @@
+# =============================================================================
+# DATABASE: Postgres (default) vs SQLite — switch by commenting/uncommenting below.
+#
+# To use SQLITE:
+#   1. Comment out the entire "postgres:" service.
+#   2. In "agenda": comment the POSTGRES env block; uncomment the SQLITE env block and "volumes:".
+#   3. In "agenda": comment out the "depends_on: postgres" block.
+#   4. In "volumes:": uncomment agenda-data; postgres-data can stay (unused).
+# =============================================================================
+
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agenda
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: agenda
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agenda"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
   agenda:
     build:
       context: .
       dockerfile: services/agenda/Dockerfile
     environment:
       AGENDA_GRPC_ADDR: ":50051"
+      # --- POSTGRES (default): use these two ---
+      #DB_DRIVER: postgres
+      #DB_SOURCE: "host=postgres port=5432 user=agenda password=secret dbname=agenda sslmode=disable"
+      # --- SQLITE: comment the two lines above; uncomment the two below ---
       DB_DRIVER: sqlite3
       DB_SOURCE: /data/agenda.db
+    # --- POSTGRES: leave commented. SQLITE: uncomment the two lines below ---
     volumes:
       - agenda-data:/data
     ports:
       - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50051"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   api:
     build:
@@ -22,7 +62,9 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - agenda
+      agenda:
+        condition: service_healthy
 
 volumes:
-  agenda-data:
+  postgres-data:
+  agenda-data:   # for SQLite: uncomment and use with agenda volumes above

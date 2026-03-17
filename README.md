@@ -24,6 +24,10 @@ make docker-up
 # Agenda gRPC at localhost:50051
 ```
 
+**Switch database (Postgres ↔ SQLite):** comment/uncomment the indicated blocks in `docker-compose.yml` (see comments at the top of that file).
+
+If you run the **API on the host** (e.g. `go run ./services/api/cmd`) while only the agenda runs in Docker, set `AGENDA_GRPC_ADDR=localhost:50051` so the client can reach the agenda service (the hostname `agenda` only resolves inside the Docker network).
+
 ## API routes
 
 | Method | Path | Description |

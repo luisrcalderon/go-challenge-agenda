@@ -1,0 +1,148 @@
+First Step:
+	- Install buf
+	- Update golang:1.23-alpine to golang:1.25-alpine  
+
+
+
+
+Issues were solved in order of importance.
+
+
+Issue #3
+	- Was solved first because of 1 and 2 dependency with 3
+	- Issue was solved by implementing the query to return a doctor list of reservations
+	  using a window of time.
+
+Issue #2
+	- Here we needed the list of doctor's reservations(issue #3)
+	- The bug here that permited the double reservation was because
+	  the way was validated had an issue it was using the same starting time compare against
+	  other reservations.
+	- The first reservation and follow up was returning always +30 minutes, was solved
+
+Issue #1
+	- This issue not necessarly needed issue #3 finished but to get more accurate responses it was done that way
+	- The issue here was that the handler was not calling the usecase that was already there, so the call was 
+	  implemented.
+
+
+Issue #5
+	- To solve this issue it was needed to solve #2, #3, #11
+	- Once this was done it was possible to implement the testing code for //TestListReservations 
+	  and other testing code like the slotduration
+
+Issue #9 
+	- Support added for postgresql without modifying bussiness logic, the only thing
+	  was that I wasnt able to find a way to do it in one line, just using DB_DRIVER=postgres
+	  it is needed to comment and uncomment some lines in the docker-compose.yml
+
+
+
+Example of responses
+
+http://localhost:8080/v1/doctors
+
+BEFORE
+[
+    {
+        "id": "doc-001",
+        "name": "Dr. Ana García",
+        "specialty": "General Practice",
+        "working_hours": null
+    },
+    {
+        "id": "doc-002",
+        "name": "Dr. Luis Mendoza",
+        "specialty": "Cardiology",
+        "working_hours": null
+    },
+    {
+        "id": "doc-003",
+        "name": "Dr. Sara Patel",
+        "specialty": "Pediatrics",
+        "working_hours": null
+    }
+]
+
+AFTER
+[
+    {
+        "id": "doc-001",
+        "name": "Dr. Ana García",
+        "specialty": "General Practice",
+        "working_hours": [
+            {
+                "weekday": 1,
+                "from": "09:00",
+                "to": "17:00"
+            },
+            {
+                "weekday": 2,
+                "from": "09:00",
+                "to": "17:00"
+            },
+            {
+                "weekday": 3,
+                "from": "09:00",
+                "to": "17:00"
+            },
+            {
+                "weekday": 4,
+                "from": "09:00",
+                "to": "17:00"
+            },
+            {
+                "weekday": 5,
+                "from": "09:00",
+                "to": "13:00"
+            }
+        ]
+    },
+    {
+        "id": "doc-002",
+        "name": "Dr. Luis Mendoza",
+        "specialty": "Cardiology",
+        "working_hours": [
+            {
+                "weekday": 1,
+                "from": "08:00",
+                "to": "16:00"
+            },
+            {
+                "weekday": 3,
+                "from": "08:00",
+                "to": "16:00"
+            },
+            {
+                "weekday": 5,
+                "from": "08:00",
+                "to": "12:00"
+            }
+        ]
+    },
+    {
+        "id": "doc-003",
+        "name": "Dr. Sara Patel",
+        "specialty": "Pediatrics",
+        "working_hours": [
+            {
+                "weekday": 2,
+                "from": "10:00",
+                "to": "18:00"
+            },
+            {
+                "weekday": 4,
+                "from": "10:00",
+                "to": "18:00"
+            }
+        ]
+    }
+
+
+
+
+
+
+
+
+

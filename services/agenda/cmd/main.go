@@ -129,7 +129,7 @@ func openDB(cfg config.Config) (*gorm.DB, error) {
 	case "sqlite3":
 		return sqlite.Open(cfg.DBSource)
 	case "postgres":
-		return nil, fmt.Errorf("postgres driver not yet implemented — see services/agenda/internal/repository/postgres/")
+		return postgres.Open(cfg.DBSource)
 	default:
 		return nil, fmt.Errorf("unknown DB driver: %s", cfg.DBDriver)
 	}
